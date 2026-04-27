@@ -1,0 +1,1857 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Portal PRL · Riesgo, Causas, NLP y Accidentabilidad (Interno vs Contrata)</title>
+  <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top left, #020617 0, #020617 40%, #020617 100%);
+      color: #e5e7eb;
+    }
+    .shell {
+      max-width: 1240px;
+      margin: 24px auto 40px;
+      padding: 0 16px;
+    }
+    .card {
+      background: radial-gradient(circle at top left, rgba(79,70,229,0.28), #020617 55%);
+      border-radius: 20px;
+      box-shadow: 0 20px 50px rgba(15,23,42,0.85);
+      padding: 18px 20px 20px;
+      border: 1px solid rgba(148,163,184,0.45);
+    }
+    .topbar {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 8px;
+    }
+    h1 {
+      margin: 0 0 4px;
+      font-size: 24px;
+      letter-spacing: -0.03em;
+    }
+    .subtitle {
+      margin: 0 0 8px;
+      font-size: 13px;
+      color: #9ca3af;
+    }
+    .storyline {
+      font-size: 11px;
+      color: #9ca3af;
+    }
+    .storyline span {
+      color: #e5e7eb;
+      font-weight: 500;
+    }
+    .nav-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      padding: 4px;
+      border-radius: 999px;
+      background: rgba(15,23,42,0.85);
+      border: 1px solid rgba(129,140,248,0.7);
+      gap: 4px;
+      backdrop-filter: blur(10px);
+    }
+    .nav-tab {
+      font-size: 11px;
+      padding: 6px 11px;
+      border-radius: 999px;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      color: #c7d2fe;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: background 0.18s, color 0.18s, transform 0.12s;
+    }
+    .nav-tab span.dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 999px;
+      background: #4b5563;
+    }
+    .nav-tab.active {
+      background: linear-gradient(135deg,#4f46e5,#22c55e);
+      color: #f9fafb;
+      transform: translateY(-1px);
+      box-shadow: 0 6px 18px rgba(79,70,229,0.6);
+    }
+    .nav-tab.active span.dot {
+      background: #f9fafb;
+    }
+    .badge-pill {
+      font-size: 10px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: rgba(15,23,42,0.9);
+      color: #c7d2fe;
+      border: 1px solid rgba(129,140,248,0.7);
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      margin-bottom: 4px;
+    }
+    .badge-pill::before {
+      content: "●";
+      font-size: 8px;
+      color: #22c55e;
+    }
+    .views { margin-top: 10px; }
+    .view { display: none; animation: fadeIn 0.25s ease-out; }
+    .view.active { display: block; }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 270px) minmax(0, 1.7fr);
+      gap: 20px;
+    }
+    @media (max-width: 900px) {
+      .layout {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+    .panel-left {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+    .kpi {
+      background: radial-gradient(circle at top left, rgba(148,163,184,0.3), rgba(15,23,42,0.96));
+      border-radius: 12px;
+      padding: 10px 12px;
+      border: 1px solid rgba(55,65,81,0.9);
+    }
+    .kpi-label {
+      font-size: 11px;
+      color: #9ca3af;
+    }
+    .kpi-value {
+      font-size: 18px;
+      font-weight: 600;
+      margin-top: 3px;
+      color: #f9fafb;
+    }
+    .kpi-badge {
+      display: inline-flex;
+      align-items: center;
+      margin-top: 4px;
+      font-size: 10px;
+      padding: 2px 7px;
+      border-radius: 999px;
+      background: rgba(15,23,42,0.9);
+      color: #93c5fd;
+      border: 1px solid rgba(59,130,246,0.6);
+    }
+    .control-block {
+      background: radial-gradient(circle at top left, rgba(79,70,229,0.3), rgba(15,23,42,0.96));
+      border-radius: 12px;
+      padding: 10px 12px 12px;
+      border: 1px solid rgba(129,140,248,0.8);
+      font-size: 12px;
+    }
+    .control-title {
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: #e5e7eb;
+    }
+    .control-desc {
+      font-size: 11px;
+      color: #cbd5f5;
+      margin-bottom: 8px;
+    }
+    .slider-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    input[type="range"] {
+      width: 100%;
+    }
+    .slider-value {
+      font-size: 12px;
+      min-width: 42px;
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
+    .select-block {
+      margin-top: 8px;
+      font-size: 12px;
+    }
+    select {
+      width: 100%;
+      padding: 6px 8px;
+      border-radius: 8px;
+      border: 1px solid rgba(75,85,99,0.9);
+      font-size: 12px;
+      background: rgba(15,23,42,0.95);
+      color: #e5e7eb;
+    }
+    .pill-hint {
+      margin-top: 6px;
+      font-size: 11px;
+      color: #9ca3af;
+    }
+    .gauge-shell {
+      margin-top: 4px;
+      background: radial-gradient(circle at top left, rgba(15,23,42,1), rgba(15,23,42,0.96));
+      border-radius: 14px;
+      padding: 8px 10px 10px;
+      color: #e5e7eb;
+      border: 1px solid rgba(31,41,55,0.9);
+    }
+    .gauge-label {
+      font-size: 11px;
+      color: #9ca3af;
+    }
+    .gauge-bar-outer {
+      margin-top: 8px;
+      width: 100%;
+      height: 10px;
+      border-radius: 999px;
+      background: linear-gradient(90deg,#22c55e,#eab308,#ef4444);
+      position: relative;
+      overflow: hidden;
+    }
+    .gauge-bar-inner {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      width: 50%;
+      background: rgba(15,23,42,0.85);
+      backdrop-filter: blur(2px);
+      transition: width 0.22s ease-out;
+    }
+    .gauge-value {
+      margin-top: 6px;
+      font-size: 12px;
+      font-variant-numeric: tabular-nums;
+    }
+    .chip-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 6px;
+    }
+    .chip {
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 999px;
+      border: 1px solid rgba(148,163,184,0.7);
+      color: #e5e7eb;
+      background: rgba(15,23,42,0.9);
+    }
+    .chip.light {
+      background: rgba(148,163,184,0.08);
+      color: #e5e7eb;
+      border-color: rgba(148,163,184,0.6);
+    }
+    .right-top-text {
+      font-size: 12px;
+      color: #d1d5db;
+      margin-bottom: 6px;
+    }
+    .section-title {
+      font-size: 13px;
+      font-weight: 600;
+      margin: 10px 0 4px;
+      color: #e5e7eb;
+    }
+    .section-sub {
+      font-size: 11px;
+      color: #9ca3af;
+      margin-bottom: 6px;
+    }
+    .footer-note {
+      margin-top: 10px;
+      font-size: 11px;
+      color: #6b7280;
+    }
+    #bubble { width: 100%; height: 360px; }
+    #trend { width: 100%; height: 220px; }
+    #bar-tipo { width: 100%; height: 300px; }
+    #line-cat { width: 100%; height: 240px; }
+    #bar-palabras { width: 100%; height: 280px; }
+    #abs-center { width: 100%; height: 280px; }
+    #abs-month { width: 100%; height: 260px; }
+    #acc-line { width: 100%; height: 320px; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 11px;
+      margin-top: 4px;
+    }
+    th, td {
+      padding: 4px 6px;
+      border-bottom: 1px solid rgba(31,41,55,0.9);
+      text-align: left;
+      vertical-align: top;
+    }
+    th {
+      background: rgba(15,23,42,0.9);
+      font-weight: 600;
+      color: #e5e7eb;
+    }
+    .badge-cat {
+      display: inline-flex;
+      padding: 1px 6px;
+      border-radius: 999px;
+      font-size: 10px;
+      margin-bottom: 2px;
+    }
+    .cat-fisico { background: rgba(248,113,113,0.15); color: #fecaca; border: 1px solid rgba(248,113,113,0.7); }
+    .cat-musculo { background: rgba(22,163,74,0.15); color: #bbf7d0; border: 1px solid rgba(34,197,94,0.7); }
+    .cat-psico { background: rgba(14,165,233,0.15); color: #bae6fd; border: 1px solid rgba(56,189,248,0.7); }
+    .cloud {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+    .cloud-word {
+      cursor: pointer;
+      padding: 2px 4px;
+      border-radius: 4px;
+      transition: background 0.15s, transform 0.15s, color 0.15s;
+    }
+    .cloud-word:hover {
+      background: rgba(129,140,248,0.25);
+      transform: translateY(-1px);
+    }
+    .cloud-word.selected {
+      background: #4f46e5;
+      color: #f9fafb;
+    }
+    mark {
+      background: #f97316;
+      color: #0f172a;
+      padding: 0 1px;
+      border-radius: 2px;
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <div class="card">
+      <div class="topbar">
+        <div>
+          <h1>Portal PRL · Riesgo, Causas, NLP y Accidentabilidad</h1>
+          <p class="subtitle">
+            Demo para la charla: cuatro vistas que cuentan la historia desde el Data Lake de RRHH/PRL,
+            diferenciando plantilla interna y personal de contratas.
+          </p>
+          <p class="storyline">
+            <span>1 · Mapa predictivo</span>: riesgo por centro, puesto y tipo de personal ·
+            <span>2 · Causas raíz</span>: patrones internos vs contratas ·
+            <span>3 · NLP texto libre</span>: diferencias en el discurso ·
+            <span>4 · Accidentabilidad</span>: impacto de reducir accidentes con baja.
+          </p>
+        </div>
+        <div>
+          <div class="nav-tabs">
+            <button class="nav-tab active" data-view="view-riesgo"><span class="dot"></span>Riesgo</button>
+            <button class="nav-tab" data-view="view-causas"><span class="dot"></span>Causas</button>
+            <button class="nav-tab" data-view="view-nlp"><span class="dot"></span>NLP texto libre</button>
+            <button class="nav-tab" data-view="view-absent"><span class="dot"></span>Absentismo y productividad</button>
+            <button class="nav-tab" data-view="view-accid"><span class="dot"></span>Accidentabilidad</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="badge-pill">
+        Datos simulados para demostración · Mismo Data Lake, cuatro capas de análisis · No representan ningún entorno real
+      </div>
+
+      <div class="views">
+
+        <!-- VISTA 1: RIESGO -->
+        <div id="view-riesgo" class="view active">
+          <div class="section-title" style="margin-top:8px;">1 · Escenario predictivo por centro, puesto y tipo de personal</div>
+          <div class="section-sub">
+            Ajusta el escenario de inversión en prevención y observa cómo se desplaza el riesgo esperado, comparando
+            plantilla interna y personal de contratas.
+          </div>
+
+          <div class="layout">
+            <div class="panel-left">
+              <div class="kpi-grid">
+                <div class="kpi">
+                  <div class="kpi-label">Centros analizados</div>
+                  <div class="kpi-value" id="rkpi-centros">-</div>
+                  <div class="kpi-badge">Cobertura territorial</div>
+                </div>
+                <div class="kpi">
+                  <div class="kpi-label">Puestos analizados</div>
+                  <div class="kpi-value" id="rkpi-puestos">-</div>
+                  <div class="kpi-badge">Mapa de roles</div>
+                </div>
+                <div class="kpi">
+                  <div class="kpi-label">Riesgo medio actual</div>
+                  <div class="kpi-value" id="rkpi-riesgo-actual">-</div>
+                  <div class="kpi-badge">Situación de partida</div>
+                </div>
+                <div class="kpi">
+                  <div class="kpi-label">Riesgo medio escenario</div>
+                  <div class="kpi-value" id="rkpi-riesgo-escenario">-</div>
+                  <div class="kpi-badge">Tras medidas preventivas</div>
+                </div>
+              </div>
+
+              <div class="control-block">
+                <div class="control-title">Simulador de inversión en prevención</div>
+                <div class="control-desc">
+                  Incrementa la formación, inspecciones o rediseño de tareas y observa el efecto estimado sobre la
+                  probabilidad de accidente.
+                </div>
+                <div class="slider-row">
+                  <input id="rslider" type="range" min="0" max="20" step="1" value="0" />
+                  <div class="slider-value"><span id="rslider-value">0</span> %</div>
+                </div>
+              </div>
+
+              <div class="select-block">
+                <div style="margin-bottom:4px;">Centro de trabajo focalizado</div>
+                <select id="rcenter-select">
+                  <option value="__all__">Todos los centros</option>
+                </select>
+                <div class="pill-hint">
+                  Filtra el mapa para comparar la situación global con la de un centro concreto.
+                </div>
+              </div>
+
+              <div class="select-block">
+                <div style="margin-bottom:4px;">Tipo de personal</div>
+                <select id="rtype-select">
+                  <option value="__all__">Todo el personal</option>
+                  <option value="Interno">Solo plantilla interna</option>
+                  <option value="Contrata">Solo contratas</option>
+                </select>
+                <div class="pill-hint">
+                  Compara el riesgo de la plantilla propia frente a las empresas subcontratadas.
+                </div>
+              </div>
+
+              <div class="gauge-shell">
+                <div class="gauge-label">Nivel de riesgo medio del filtro seleccionado</div>
+                <div class="gauge-bar-outer">
+                  <div class="gauge-bar-inner" id="rgauge-inner"></div>
+                </div>
+                <div class="gauge-value" id="rgauge-text">Selecciona centro y tipo de personal para ver el detalle.</div>
+                <div class="chip-row">
+                  <div class="chip">Verde: Riesgo bajo</div>
+                  <div class="chip">Ámbar: Riesgo moderado</div>
+                  <div class="chip">Rojo: Riesgo alto</div>
+                </div>
+              </div>
+
+              <div class="footer-note">
+                Esta vista se alimentaría del Data Lake con datos de accidentes, exposición (horas trabajadas),
+                rotación, formación y tipo de personal (interno / contrata), más un modelo predictivo.
+              </div>
+            </div>
+
+            <div>
+              <div class="right-top-text">
+                Cada burbuja representa un <strong>puesto en un centro</strong>. El eje Y muestra el riesgo estimado
+                (0–1), el tamaño el nº de accidentes históricos y el color la intensidad de riesgo en el escenario
+                seleccionado.
+              </div>
+              <div id="bubble"></div>
+
+              <div class="section-title">Riesgo medio por centro</div>
+              <div class="section-sub">
+                Comparativa rápida del riesgo esperado para cada centro según el filtro de personal interno / contrata.
+              </div>
+              <div id="trend"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- VISTA 2: CAUSAS -->
+        <div id="view-causas" class="view">
+          <div class="section-title" style="margin-top:8px;">2 · Causas raíz y patrones de salud laboral</div>
+          <div class="section-sub">
+            Agrupa incidentes por tipo de causa y observa cómo evolucionan en el tiempo las categorías física,
+            musculoesquelética y psicosocial, diferenciando internos y contratas.
+          </div>
+
+          <div class="layout">
+            <div class="panel-left">
+              <div class="kpi-grid">
+                <div class="kpi">
+                  <div class="kpi-label">Incidentes registrados</div>
+                  <div class="kpi-value" id="ckpi-incidentes">-</div>
+                  <div class="kpi-badge">Volumen de casos</div>
+                </div>
+                <div class="kpi">
+                  <div class="kpi-label">% Riesgo psicosocial</div>
+                  <div class="kpi-value" id="ckpi-psico">-</div>
+                  <div class="kpi-badge">Bienestar emocional</div>
+                </div>
+                <div class="kpi">
+                  <div class="kpi-label">Días de baja acumulados</div>
+                  <div class="kpi-value" id="ckpi-baja">-</div>
+                  <div class="kpi-badge">Impacto en productividad</div>
+                </div>
+                <div class="kpi">
+                  <div class="kpi-label">Riesgo medio estimado</div>
+                  <div class="kpi-value" id="ckpi-riesgo">-</div>
+                  <div class="kpi-badge">Severidad relativa</div>
+                </div>
+              </div>
+
+              <div class="select-block">
+                <div style="margin-bottom:4px;">Centro de trabajo</div>
+                <select id="ccenter-select">
+                  <option value="__all__">Todos los centros</option>
+                </select>
+              </div>
+
+              <div class="select-block" style="margin-top:10px;">
+                <div style="margin-bottom:4px;">Enfoque de análisis</div>
+                <select id="cfocus-select">
+                  <option value="ALL">Todas las categorías</option>
+                  <option value="Accidente físico">Solo accidentes físicos</option>
+                  <option value="Salud musculoesquelética">Solo salud musculoesquelética</option>
+                  <option value="Riesgo psicosocial">Solo riesgo psicosocial</option>
+                </select>
+              </div>
+
+              <div class="select-block" style="margin-top:10px;">
+                <div style="margin-bottom:4px;">Tipo de personal</div>
+                <select id="ctype-select">
+                  <option value="__all__">Todo el personal</option>
+                  <option value="Interno">Solo plantilla interna</option>
+                  <option value="Contrata">Solo contratas</option>
+                </select>
+                <div class="pill-hint">
+                  ¿Cambian las causas raíz cuando el trabajo lo ejecuta una contrata?
+                </div>
+              </div>
+
+              <div class="chip-row" style="margin-top:10px;">
+                <span class="chip light">De conteo de casos a patrones</span>
+                <span class="chip light">Datos estructurados del Data Lake</span>
+              </div>
+
+              <div class="footer-note">
+                Esta vista puede combinar partes de accidente, bajas médicas, encuestas y entrevistas de salud
+                laboral para anticipar focos de riesgo emergentes.
+              </div>
+            </div>
+
+            <div>
+              <div class="right-top-text">
+                El gráfico superior agrupa los incidentes por <strong>tipo de causa</strong>. Debajo, la línea de tiempo
+                muestra cómo evoluciona el nº de casos por categoría y tipo de personal.
+              </div>
+
+              <div id="bar-tipo"></div>
+
+              <div id="line-cat"></div>
+
+              <div class="section-title">Ejemplos de textos de causa raíz</div>
+              <div class="section-sub">
+                Fragmentos que ilustran el contexto detrás de los datos y ayudan a orientar intervenciones de PRL.
+              </div>
+
+              <table id="tabla-textos-causas">
+                <thead>
+                  <tr>
+                    <th>Fecha</th>
+                    <th>Centro / Turno</th>
+                    <th>Categoría / Tipo</th>
+                    <th>Texto de causa</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- VISTA 3: NLP -->
+        <div id="view-nlp" class="view">
+          <div class="section-title" style="margin-top:8px;">3 · Análisis de causas raíz con texto libre (NLP básico)</div>
+          <div class="section-sub">
+            A partir de descripciones en texto libre de partes de incidente, extraemos patrones de palabras clave y las
+            vinculamos con centros, categorías, días de baja y tipo de personal.
+          </div>
+
+          <div class="layout">
+            <div class="panel-left">
+              <div class="kpi-grid">
+                <div class="kpi">
+                  <div class="kpi-label">Incidentes analizados</div>
+                  <div class="kpi-value" id="nkpi-incidentes">-</div>
+                  <div class="kpi-badge">Base de texto</div>
+                </div>
+                <div class="kpi">
+                  <div class="kpi-label">Palabras distintas</div>
+                  <div class="kpi-value" id="nkpi-vocab">-</div>
+                  <div class="kpi-badge">Riqueza de vocabulario</div>
+                </div>
+                <div class="kpi">
+                  <div class="kpi-label">Palabra más frecuente</div>
+                  <div class="kpi-value" id="nkpi-topword">-</div>
+                  <div class="kpi-badge">Causa recurrente</div>
+                </div>
+                <div class="kpi">
+                  <div class="kpi-label">Días de baja (total)</div>
+                  <div class="kpi-value" id="nkpi-baja">-</div>
+                  <div class="kpi-badge">Impacto asociado</div>
+                </div>
+              </div>
+
+              <div class="select-block">
+                <div style="margin-bottom:4px;">Centro de trabajo</div>
+                <select id="ncenter-select">
+                  <option value="__all__">Todos los centros</option>
+                </select>
+              </div>
+
+              <div class="select-block" style="margin-top:10px;">
+                <div style="margin-bottom:4px;">Categoría</div>
+                <select id="ncat-select">
+                  <option value="ALL">Todas las categorías</option>
+                  <option value="Accidente físico">Accidente físico</option>
+                  <option value="Salud musculoesquelética">Salud musculoesquelética</option>
+                  <option value="Riesgo psicosocial">Riesgo psicosocial</option>
+                </select>
+              </div>
+
+              <div class="select-block" style="margin-top:10px;">
+                <div style="margin-bottom:4px;">Tipo de personal</div>
+                <select id="ntype-select">
+                  <option value="__all__">Todo el personal</option>
+                  <option value="Interno">Solo plantilla interna</option>
+                  <option value="Contrata">Solo contratas</option>
+                </select>
+                <div class="pill-hint">
+                  Compara el vocabulario de causas entre internos y contratas.
+                </div>
+              </div>
+
+              <div class="chip-row" style="margin-top:10px;">
+                <span class="chip light">Tokenización y stopwords</span>
+                <span class="chip light">Top palabras clave</span>
+                <span class="chip light">Puente hacia modelos de lenguaje</span>
+              </div>
+
+              <div class="footer-note">
+                Este enfoque se puede ampliar con análisis de sentimiento, clustering de textos o modelos de lenguaje
+                sobre el Data Lake.
+              </div>
+            </div>
+
+            <div>
+              <div class="right-top-text">
+                El gráfico muestra las <strong>palabras más frecuentes</strong> en los textos de causa raíz. Al hacer clic
+                en una palabra, se resalta en los textos de la tabla inferior.
+              </div>
+
+              <div id="bar-palabras"></div>
+
+              <div class="section-title">Nube de palabras clave (simplificada)</div>
+              <div class="section-sub">
+                Cada palabra se representa con un tamaño proporcional a su frecuencia relativa.
+              </div>
+
+              <div id="cloud" class="cloud"></div>
+
+              <div class="section-title">Ejemplos de textos de causa raíz</div>
+              <div class="section-sub">
+                Al elegir una palabra clave, verás cómo se repite en distintos centros, turnos y tipos de personal.
+              </div>
+
+              <table id="tabla-textos-nlp">
+                <thead>
+                  <tr>
+                    <th>Fecha</th>
+                    <th>Centro / Turno</th>
+                    <th>Categoría / Tipo</th>
+                    <th>Texto de causa</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+
+        <!-- VISTA 5: ABSENTISMO Y PRODUCTIVIDAD -->
+        <div id="view-absent" class="view">
+          <div class="section-title" style="margin-top:8px;">5 · Absentismo laboral y productividad</div>
+          <div class="section-sub">
+            Cuadro de mando basado en la <strong>tasa de absentismo laboral</strong>:
+            <br>
+            <em>Tasa de absentismo laboral = (Horas perdidas por ausencias no retribuidas / Horas efectivas de trabajo) × 100</em>.
+            <br>
+            Explora el impacto económico en la productividad, diferenciando plantilla interna y personal de contratas.
+          </div>
+
+          <div class="layout">
+            <div class="panel-left">
+              <div class="kpi-grid">
+                <div class="kpi">
+                  <div class="kpi-label">Tasa de absentismo actual</div>
+                  <div class="kpi-value" id="bkpi-tasa-actual">-</div>
+                  <div class="kpi-badge">Horas perdidas / horas efectivas</div>
+                </div>
+                <div class="kpi">
+                  <div class="kpi-label">Tasa escenario simulada</div>
+                  <div class="kpi-value" id="bkpi-tasa-escenario">-</div>
+                  <div class="kpi-badge">Tras reducción objetivo</div>
+                </div>
+                <div class="kpi">
+                  <div class="kpi-label">Coste anual estimado</div>
+                  <div class="kpi-value" id="bkpi-coste-actual">-</div>
+                  <div class="kpi-badge">€ por horas perdidas</div>
+                </div>
+                <div class="kpi">
+                  <div class="kpi-label">FTE equivalentes perdidos</div>
+                  <div class="kpi-value" id="bkpi-fte">-</div>
+                  <div class="kpi-badge">Jornadas completas absorbidas</div>
+                </div>
+              </div>
+
+              <div class="control-block">
+                <div class="control-title">Simulador de reducción de absentismo</div>
+                <div class="control-desc">
+                  Ajusta el objetivo de reducción de la tasa de absentismo y observa el ahorro económico potencial.
+                </div>
+                <div class="slider-row">
+                  <input id="abs-slider" type="range" min="0" max="40" step="5" value="0" />
+                  <div class="slider-value"><span id="abs-slider-value">0</span> %</div>
+                </div>
+              </div>
+
+              <div class="select-block">
+                <div style="margin-bottom:4px;">Centro de trabajo</div>
+                <select id="abs-center-select">
+                  <option value="__all__">Todos los centros</option>
+                </select>
+              </div>
+
+              <div class="select-block">
+                <div style="margin-bottom:4px;">Tipo de personal</div>
+                <select id="abs-type-select">
+                  <option value="__all__">Todo el personal</option>
+                  <option value="Interno">Solo plantilla interna</option>
+                  <option value="Contrata">Solo contratas</option>
+                </select>
+                <div class="pill-hint">
+                  Compara el impacto económico del absentismo entre personal interno y empresas subcontratadas.
+                </div>
+              </div>
+
+              <div class="chip-row" style="margin-top:10px;">
+                <span class="chip light">Horas perdidas no retribuidas</span>
+                <span class="chip light">Coste medio por hora</span>
+                <span class="chip light">Tasa de absentismo vs productividad</span>
+              </div>
+
+              <div class="footer-note">
+                Inspirado en análisis macroeconómicos recientes sobre absentismo en España (2019–2025) y su impacto
+                en costes directos, indirectos y pérdida de productividad agregada.
+              </div>
+            </div>
+
+            <div>
+              <div class="right-top-text">
+                En la parte superior puedes ver la <strong>tasa de absentismo por centro</strong>. Debajo, la evolución mensual de la tasa
+                y el efecto del escenario simulado de reducción sobre la productividad.
+              </div>
+
+              <div id="abs-center"></div>
+
+              <div class="section-title">Evolución mensual de la tasa de absentismo</div>
+              <div class="section-sub">
+                Se muestran los valores históricos y el escenario simulado tras aplicar la reducción objetivo seleccionada.
+              </div>
+              <div id="abs-month"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- VISTA 4: ACCIDENTABILIDAD -->
+        <div id="view-accid" class="view">
+          <div class="section-title" style="margin-top:8px;">4 · Panel de control de accidentabilidad con simulador de impacto</div>
+          <div class="section-sub">
+            Combinamos los incidentes con baja y los días de baja para construir un panel de accidentabilidad. El
+            simulador permite ver el impacto de reducir los accidentes con baja para internos o contratas.
+          </div>
+
+          <div class="layout">
+            <div class="panel-left">
+              <div class="kpi-grid">
+                <div class="kpi">
+                  <div class="kpi-label">Incidentes totales</div>
+                  <div class="kpi-value" id="akpi-incidentes">-</div>
+                  <div class="kpi-badge">Con y sin baja</div>
+                </div>
+                <div class="kpi">
+                  <div class="kpi-label">Accidentes con baja</div>
+                  <div class="kpi-value" id="akpi-conbaja">-</div>
+                  <div class="kpi-badge">Gravedad operativa</div>
+                </div>
+                <div class="kpi">
+                  <div class="kpi-label">Tasa de frecuencia actual</div>
+                  <div class="kpi-value" id="akpi-tasa">-</div>
+                  <div class="kpi-badge">Accidentes con baja / 100 pers.</div>
+                </div>
+                <div class="kpi">
+                  <div class="kpi-label">Días de baja evitables</div>
+                  <div class="kpi-value" id="akpi-dias-evitables">-</div>
+                  <div class="kpi-badge">Escenario simulado</div>
+                </div>
+              </div>
+
+              <div class="control-block">
+                <div class="control-title">Simulador de reducción de accidentes con baja</div>
+                <div class="control-desc">
+                  Ajusta el objetivo de reducción y observa el efecto estimado sobre la tasa de frecuencia y los días de baja.
+                </div>
+                <div class="slider-row">
+                  <input id="aslider" type="range" min="0" max="50" step="5" value="0" />
+                  <div class="slider-value"><span id="aslider-value">0</span> %</div>
+                </div>
+              </div>
+
+              <div class="select-block">
+                <div style="margin-bottom:4px;">Centro de trabajo</div>
+                <select id="acenter-select">
+                  <option value="__all__">Todos los centros</option>
+                </select>
+              </div>
+
+              <div class="select-block">
+                <div style="margin-bottom:4px;">Tipo de personal</div>
+                <select id="atype-select">
+                  <option value="__all__">Todo el personal</option>
+                  <option value="Interno">Solo plantilla interna</option>
+                  <option value="Contrata">Solo contratas</option>
+                </select>
+                <div class="pill-hint">
+                  Simula el impacto de reducir accidentes con baja en contratas frente a plantilla interna.
+                </div>
+              </div>
+
+              <div class="chip-row" style="margin-top:10px;">
+                <span class="chip light">Tasa de frecuencia simulada</span>
+                <span class="chip light">Impacto en días perdidos</span>
+              </div>
+
+              <div class="footer-note">
+                En producción, este panel se alimentaría del histórico de accidentes, plantilla por centro y tipo de
+                personal, y horas trabajadas.
+              </div>
+            </div>
+
+            <div>
+              <div class="right-top-text">
+                El gráfico muestra la <strong>tasa de accidentes con baja por mes</strong> (ejemplo: accidentes / 100 personas),
+                comparando la serie histórica con el escenario simulado de reducción para el filtro seleccionado.
+              </div>
+
+              <div id="acc-line"></div>
+
+              <div class="section-title">Detalle de supuestos</div>
+              <div class="section-sub">
+                Para la demo se supone una plantilla constante y una relación proporcional entre reducción de accidentes y
+                días de baja. En la práctica se adaptarían a la realidad de la compañía.
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div> <!-- views -->
+    </div>
+  </div>
+
+  <script>
+    // ==================== DATOS SIMULADOS ====================
+
+    const riskDataBase = [
+      // Centro Madrid
+      {CentroTrabajo:"Centro Madrid",   Puesto:"Operario",              RiesgoMedio:0.72, Accidentes:34, TipoPersonal:"Contrata"},
+      {CentroTrabajo:"Centro Madrid",   Puesto:"Carretillero",          RiesgoMedio:0.65, Accidentes:27, TipoPersonal:"Contrata"},
+      {CentroTrabajo:"Centro Madrid",   Puesto:"Técnico mantenimiento", RiesgoMedio:0.58, Accidentes:19, TipoPersonal:"Interno"},
+      {CentroTrabajo:"Centro Madrid",   Puesto:"Teleoperador",          RiesgoMedio:0.42, Accidentes:12, TipoPersonal:"Interno"},
+
+      // Centro Barcelona
+      {CentroTrabajo:"Centro Barcelona",Puesto:"Operario",              RiesgoMedio:0.61, Accidentes:26, TipoPersonal:"Contrata"},
+      {CentroTrabajo:"Centro Barcelona",Puesto:"Carretillero",          RiesgoMedio:0.55, Accidentes:18, TipoPersonal:"Interno"},
+      {CentroTrabajo:"Centro Barcelona",Puesto:"Técnico mantenimiento", RiesgoMedio:0.49, Accidentes:15, TipoPersonal:"Interno"},
+      {CentroTrabajo:"Centro Barcelona",Puesto:"Teleoperador",          RiesgoMedio:0.36, Accidentes:9,  TipoPersonal:"Interno"},
+
+      // Centro Valencia
+      {CentroTrabajo:"Centro Valencia", Puesto:"Operario",              RiesgoMedio:0.57, Accidentes:21, TipoPersonal:"Contrata"},
+      {CentroTrabajo:"Centro Valencia", Puesto:"Carretillero",          RiesgoMedio:0.52, Accidentes:16, TipoPersonal:"Contrata"},
+      {CentroTrabajo:"Centro Valencia", Puesto:"Técnico mantenimiento", RiesgoMedio:0.45, Accidentes:14, TipoPersonal:"Interno"},
+      {CentroTrabajo:"Centro Valencia", Puesto:"Teleoperador",          RiesgoMedio:0.33, Accidentes:7,  TipoPersonal:"Interno"},
+
+      // Centro Sevilla
+      {CentroTrabajo:"Centro Sevilla",  Puesto:"Operario",              RiesgoMedio:0.68, Accidentes:29, TipoPersonal:"Contrata"},
+      {CentroTrabajo:"Centro Sevilla",  Puesto:"Carretillero",          RiesgoMedio:0.6,  Accidentes:22, TipoPersonal:"Contrata"},
+      {CentroTrabajo:"Centro Sevilla",  Puesto:"Técnico mantenimiento", RiesgoMedio:0.54, Accidentes:17, TipoPersonal:"Interno"},
+      {CentroTrabajo:"Centro Sevilla",  Puesto:"Teleoperador",          RiesgoMedio:0.39, Accidentes:10, TipoPersonal:"Interno"},
+
+      // Centro Bilbao
+      {CentroTrabajo:"Centro Bilbao",   Puesto:"Operario",              RiesgoMedio:0.63, Accidentes:24, TipoPersonal:"Contrata"},
+      {CentroTrabajo:"Centro Bilbao",   Puesto:"Carretillero",          RiesgoMedio:0.56, Accidentes:19, TipoPersonal:"Interno"},
+      {CentroTrabajo:"Centro Bilbao",   Puesto:"Técnico mantenimiento", RiesgoMedio:0.5,  Accidentes:15, TipoPersonal:"Interno"},
+      {CentroTrabajo:"Centro Bilbao",   Puesto:"Teleoperador",          RiesgoMedio:0.37, Accidentes:8,  TipoPersonal:"Interno"}
+    ];
+
+    const causeDataBase = [
+      // Centro Madrid
+      {Fecha:"2023-01-10",CentroTrabajo:"Centro Madrid",Turno:"Mañana",Categoria:"Accidente físico",TipoIncidente:"Caída al mismo nivel",MotivoBaja:"Accidente laboral con baja",DiasBaja:7,TextoCausa:"Empleado de contrata refiere caída al mismo nivel en zona de carga con suelo húmedo.",TipoPersonal:"Contrata"},
+      {Fecha:"2023-01-15",CentroTrabajo:"Centro Madrid",Turno:"Tarde",Categoria:"Salud musculoesquelética",TipoIncidente:"Sobreesfuerzo lumbar",MotivoBaja:"Enfermedad común 4-15 días",DiasBaja:6,TextoCausa:"Operario interno sufre sobreesfuerzo lumbar tras manipulación manual repetitiva de cajas pesadas.",TipoPersonal:"Interno"},
+      {Fecha:"2023-02-02",CentroTrabajo:"Centro Madrid",Turno:"Noche",Categoria:"Riesgo psicosocial",TipoIncidente:"Estrés / burnout",MotivoBaja:"Enfermedad común > 15 días",DiasBaja:20,TextoCausa:"Teleoperador interno presenta estrés mantenido por alta carga de trabajo y presión por objetivos en campaña.",TipoPersonal:"Interno"},
+
+      // Centro Barcelona
+      {Fecha:"2023-02-12",CentroTrabajo:"Centro Barcelona",Turno:"Mañana",Categoria:"Accidente físico",TipoIncidente:"Golpe con objeto",MotivoBaja:"Accidente laboral con baja",DiasBaja:5,TextoCausa:"Trabajador de contrata sufre golpe con objeto durante operación de apilado por espacio reducido.",TipoPersonal:"Contrata"},
+      {Fecha:"2023-03-03",CentroTrabajo:"Centro Barcelona",Turno:"Rotativo",Categoria:"Salud musculoesquelética",TipoIncidente:"Lesión de hombro",MotivoBaja:"Enfermedad común 4-15 días",DiasBaja:9,TextoCausa:"Empleado interno presenta lesión de hombro tras varias semanas con cargas por encima de la cabeza.",TipoPersonal:"Interno"},
+      {Fecha:"2023-03-20",CentroTrabajo:"Centro Barcelona",Turno:"Tarde",Categoria:"Riesgo psicosocial",TipoIncidente:"Ansiedad relacionada con el trabajo",MotivoBaja:"Enfermedad común > 15 días",DiasBaja:18,TextoCausa:"Empleado de contrata presenta ansiedad relacionada con turnos cambiantes y falta de descanso.",TipoPersonal:"Contrata"},
+
+      // Centro Valencia
+      {Fecha:"2023-04-05",CentroTrabajo:"Centro Valencia",Turno:"Mañana",Categoria:"Accidente físico",TipoIncidente:"Caída al mismo nivel",MotivoBaja:"Sin baja",DiasBaja:0,TextoCausa:"Trabajador de contrata sufre resbalón en rampa sin señalizar, sin consecuencias graves.",TipoPersonal:"Contrata"},
+      {Fecha:"2023-04-18",CentroTrabajo:"Centro Valencia",Turno:"Tarde",Categoria:"Salud musculoesquelética",TipoIncidente:"Sobreesfuerzo lumbar",MotivoBaja:"Enfermedad común < 3 días",DiasBaja:2,TextoCausa:"Operario interno sufre sobreesfuerzo lumbar por levantar cargas sin ayuda mecánica.",TipoPersonal:"Interno"},
+      {Fecha:"2023-05-01",CentroTrabajo:"Centro Valencia",Turno:"Noche",Categoria:"Riesgo psicosocial",TipoIncidente:"Trastorno del sueño",MotivoBaja:"Enfermedad común 4-15 días",DiasBaja:8,TextoCausa:"Empleado interno presenta trastorno del sueño asociado a turnos de noche consecutivos.",TipoPersonal:"Interno"},
+
+      // Centro Sevilla
+      {Fecha:"2023-02-25",CentroTrabajo:"Centro Sevilla",Turno:"Mañana",Categoria:"Accidente físico",TipoIncidente:"Golpe con objeto",MotivoBaja:"Accidente laboral con baja",DiasBaja:6,TextoCausa:"Trabajador de contrata sufre golpe con objeto móvil por falta de separación de flujos peatonales y carretillas.",TipoPersonal:"Contrata"},
+      {Fecha:"2023-03-15",CentroTrabajo:"Centro Sevilla",Turno:"Rotativo",Categoria:"Salud musculoesquelética",TipoIncidente:"Lesión de hombro",MotivoBaja:"Enfermedad común 4-15 días",DiasBaja:10,TextoCausa:"Empleado interno sufre lesión de hombro tras repetición continuada de movimientos sobre cabeza.",TipoPersonal:"Interno"},
+      {Fecha:"2023-05-10",CentroTrabajo:"Centro Sevilla",Turno:"Tarde",Categoria:"Riesgo psicosocial",TipoIncidente:"Estrés / burnout",MotivoBaja:"Enfermedad común > 15 días",DiasBaja:22,TextoCausa:"Trabajador de contrata sufre estrés / burnout por falta de personal y aumento de volumen en campaña.",TipoPersonal:"Contrata"},
+
+      // Centro Bilbao
+      {Fecha:"2023-01-30",CentroTrabajo:"Centro Bilbao",Turno:"Noche",Categoria:"Accidente físico",TipoIncidente:"Caída al mismo nivel",MotivoBaja:"Accidente laboral con baja",DiasBaja:4,TextoCausa:"Trabajador de contrata sufre caída al mismo nivel en zona de muelle con iluminación deficiente.",TipoPersonal:"Contrata"},
+      {Fecha:"2023-04-22",CentroTrabajo:"Centro Bilbao",Turno:"Mañana",Categoria:"Salud musculoesquelética",TipoIncidente:"Sobreesfuerzo lumbar",MotivoBaja:"Enfermedad común 4-15 días",DiasBaja:7,TextoCausa:"Empleado interno presenta sobreesfuerzo lumbar tras varias horas de manipulación manual sin pausas.",TipoPersonal:"Interno"},
+      {Fecha:"2023-06-02",CentroTrabajo:"Centro Bilbao",Turno:"Tarde",Categoria:"Riesgo psicosocial",TipoIncidente:"Ansiedad relacionada con el trabajo",MotivoBaja:"Enfermedad común > 15 días",DiasBaja:19,TextoCausa:"Empleado interno presenta ansiedad por cambios organizativos rápidos y objetivos poco claros.",TipoPersonal:"Interno"}
+    ];
+
+    // ==================== NAVEGACIÓN ENTRE VISTAS ====================
+    const tabs = document.querySelectorAll(".nav-tab");
+    const views = document.querySelectorAll(".view");
+    tabs.forEach(tab => {
+      tab.addEventListener("click", () => {
+        const target = tab.getAttribute("data-view");
+        tabs.forEach(t => t.classList.remove("active"));
+        tab.classList.add("active");
+        views.forEach(v => v.classList.remove("active"));
+        document.getElementById(target).classList.add("active");
+        setTimeout(() => {
+          if (target === "view-riesgo") refreshRiskAll();
+          else if (target === "view-causas") refreshCauseAll();
+          else if (target === "view-nlp")     refreshNlpAll();
+          else if (target === "view-absent")  refreshAbsentAll();
+          else                                refreshAccAll();
+        }, 60);
+      });
+    });
+
+    // ==================== VISTA 1 · RIESGO ====================
+    let rCurrentPct = 0;
+    let rScenarioData = applyRiskScenario(riskDataBase, rCurrentPct);
+
+    const rCentros = [...new Set(riskDataBase.map(d => d.CentroTrabajo))];
+    const rPuestos = [...new Set(riskDataBase.map(d => d.Puesto))];
+
+    const rCenterSelect = document.getElementById("rcenter-select");
+    const rTypeSelect = document.getElementById("rtype-select");
+
+    rCentros.forEach(c => {
+      const opt = document.createElement("option");
+      opt.value = c;
+      opt.textContent = c;
+      rCenterSelect.appendChild(opt);
+    });
+
+    document.getElementById("rkpi-centros").textContent = rCentros.length;
+    document.getElementById("rkpi-puestos").textContent = rPuestos.length;
+
+    function applyRiskScenario(data, pct) {
+      const factor = 1 - (pct / 100) * 0.8; // con 20% inversión, hasta 16% de reducción
+      return data.map(d => {
+        const esc = Math.min(0.98, Math.max(0.02, d.RiesgoMedio * factor));
+        return {...d, RiesgoEscenario: esc};
+      });
+    }
+
+    function rCalcMeanRisk(data, field) {
+      if (!data.length) return 0;
+      const sum = data.reduce((acc, d) => acc + (d[field] || 0), 0);
+      return sum / data.length;
+    }
+
+    function filteredRiskData() {
+      const center = rCenterSelect.value;
+      const tipo = rTypeSelect.value;
+      return rScenarioData.filter(d => {
+        const okCenter = center === "__all__" || d.CentroTrabajo === center;
+        const okTipo = tipo === "__all__" || d.TipoPersonal === tipo;
+        return okCenter && okTipo;
+      });
+    }
+
+    function updateRiskKpis() {
+      const meanActual = rCalcMeanRisk(riskDataBase, "RiesgoMedio");
+      const meanScenario = rCalcMeanRisk(rScenarioData, "RiesgoEscenario");
+      document.getElementById("rkpi-riesgo-actual").textContent = meanActual.toFixed(2);
+      document.getElementById("rkpi-riesgo-escenario").textContent = meanScenario.toFixed(2);
+    }
+
+    function updateRiskGauge() {
+      const subset = filteredRiskData();
+      if (!subset.length) {
+        document.getElementById("rgauge-text").textContent = "No hay datos para esta combinación.";
+        return;
+      }
+      const mean = rCalcMeanRisk(subset, "RiesgoEscenario");
+      const pct = Math.max(0, Math.min(1, mean));
+      const gaugeInner = document.getElementById("rgauge-inner");
+      gaugeInner.style.width = (100 - pct * 100) + "%";
+
+      let nivel = "";
+      if (mean < 0.33) nivel = "Zona verde · Riesgo bajo";
+      else if (mean < 0.66) nivel = "Zona ámbar · Riesgo moderado";
+      else nivel = "Zona roja · Riesgo elevado";
+
+      document.getElementById("rgauge-text").textContent =
+        "Riesgo medio: " + mean.toFixed(2) + " · " + nivel;
+    }
+
+    function buildBubble() {
+      const plotData = filteredRiskData();
+
+      const x = [];
+      const y = [];
+      const size = [];
+      const text = [];
+      const color = [];
+
+      plotData.forEach(d => {
+        x.push(d.Puesto + " (" + d.TipoPersonal + ")");
+        y.push(d.RiesgoEscenario);
+        size.push(8 + d.Accidentes);
+        color.push(d.RiesgoEscenario);
+        text.push(
+          d.CentroTrabajo + " · " + d.Puesto + " · " + d.TipoPersonal +
+          "<br>Riesgo escenario: " + d.RiesgoEscenario.toFixed(2) +
+          "<br>Riesgo actual: " + d.RiesgoMedio.toFixed(2) +
+          "<br>Accidentes: " + d.Accidentes
+        );
+      });
+
+      const trace = {
+        x,
+        y,
+        text,
+        mode: "markers",
+        type: "scatter",
+        marker: {
+          size,
+          sizemode: "diameter",
+          sizeref: 2.0,
+          color,
+          colorscale: [
+            [0, "#bbf7d0"],
+            [0.25, "#86efac"],
+            [0.5, "#facc15"],
+            [0.75, "#fb923c"],
+            [1, "#ef4444"]
+          ],
+          colorbar: {
+            title: "Riesgo escenario"
+          },
+          line: { width: 0.5, color: "rgba(15,23,42,0.7)" }
+        },
+        hovertemplate: "%{text}<extra></extra>"
+      };
+
+      const layout = {
+        margin: { l: 40, r: 40, t: 10, b: 80 },
+        paper_bgcolor: "rgba(0,0,0,0)",
+        plot_bgcolor: "rgba(15,23,42,0.6)",
+        font: { color: "#e5e7eb" },
+        xaxis: {
+          title: "Puesto (tipo de personal)",
+          automargin: true,
+          gridcolor: "rgba(55,65,81,0.6)"
+        },
+        yaxis: {
+          title: "Probabilidad estimada de accidente",
+          range: [0, 1],
+          gridcolor: "rgba(55,65,81,0.6)"
+        }
+      };
+
+      Plotly.newPlot("bubble", [trace], layout, {responsive: true});
+    }
+
+    function buildTrend() {
+      const center = rCenterSelect.value;
+      const tipo = rTypeSelect.value;
+      const centersForTrend = center === "__all__" ? rCentros : [center];
+
+      const x = [];
+      const y = [];
+
+      centersForTrend.forEach(c => {
+        const subset = rScenarioData.filter(d => {
+          const okCenter = d.CentroTrabajo === c;
+          const okTipo = tipo === "__all__" || d.TipoPersonal === tipo;
+          return okCenter && okTipo;
+        });
+        if (subset.length) {
+          x.push(c);
+          y.push(rCalcMeanRisk(subset, "RiesgoEscenario"));
+        }
+      });
+
+      const trace = {
+        x,
+        y,
+        type: "bar",
+        marker: {
+          line: { width: 0.5, color: "rgba(15,23,42,0.6)" }
+        },
+        hovertemplate: "%{x}<br>Riesgo medio: %{y:.2f}<extra></extra>"
+      };
+
+      const layout = {
+        margin: { l: 40, r: 20, t: 10, b: 70 },
+        paper_bgcolor: "rgba(0,0,0,0)",
+        plot_bgcolor: "rgba(15,23,42,0.6)",
+        font: { color: "#e5e7eb" },
+        xaxis: { automargin: true, gridcolor: "rgba(55,65,81,0.6)" },
+        yaxis: {
+          title: "Riesgo medio escenario",
+          range: [0, 1],
+          gridcolor: "rgba(55,65,81,0.6)"
+        }
+      };
+
+      Plotly.newPlot("trend", [trace], layout, {responsive: true});
+    }
+
+    function refreshRiskAll() {
+      updateRiskKpis();
+      updateRiskGauge();
+      buildBubble();
+      buildTrend();
+    }
+
+    const rSlider = document.getElementById("rslider");
+    const rSliderValue = document.getElementById("rslider-value");
+    rSlider.addEventListener("input", e => {
+      const pct = parseInt(e.target.value, 10) || 0;
+      rCurrentPct = pct;
+      rSliderValue.textContent = pct;
+      rScenarioData = applyRiskScenario(riskDataBase, rCurrentPct);
+      refreshRiskAll();
+    });
+
+    rCenterSelect.addEventListener("change", () => {
+      refreshRiskAll();
+    });
+    rTypeSelect.addEventListener("change", () => {
+      refreshRiskAll();
+    });
+
+    // ==================== VISTA 2 · CAUSAS ====================
+    const cCentros = [...new Set(causeDataBase.map(d => d.CentroTrabajo))];
+    const cCenterSelect = document.getElementById("ccenter-select");
+    const cFocusSelect = document.getElementById("cfocus-select");
+    const cTypeSelect = document.getElementById("ctype-select");
+
+    cCentros.forEach(c => {
+      const opt = document.createElement("option");
+      opt.value = c;
+      opt.textContent = c;
+      cCenterSelect.appendChild(opt);
+    });
+
+    function getCauseFiltered() {
+      const center = cCenterSelect.value;
+      const focus  = cFocusSelect.value;
+      const tipo   = cTypeSelect.value;
+      return causeDataBase.filter(d => {
+        const okCenter = center === "__all__" || d.CentroTrabajo === center;
+        const okFocus  = focus === "ALL" || d.Categoria === focus;
+        const okTipo   = tipo === "__all__" || d.TipoPersonal === tipo;
+        return okCenter && okFocus && okTipo;
+      });
+    }
+
+    function updateCauseKpis() {
+      const data = getCauseFiltered();
+      const total = data.length;
+      const psico = data.filter(d => d.Categoria === "Riesgo psicosocial").length;
+      const dias = data.reduce((acc, d) => acc + (d.DiasBaja || 0), 0);
+      const riesgoMean = total ? data.reduce((acc, d) => acc + (d.DiasBaja ? 0.7 : 0.4), 0) / total : 0;
+
+      document.getElementById("ckpi-incidentes").textContent = total;
+      document.getElementById("ckpi-psico").textContent = total ? ((psico / total) * 100).toFixed(0) + "%" : "0%";
+      document.getElementById("ckpi-baja").textContent = dias;
+      document.getElementById("ckpi-riesgo").textContent = riesgoMean.toFixed(2);
+    }
+
+    function buildBarTipo() {
+      const data = getCauseFiltered();
+      const counts = {};
+      data.forEach(d => {
+        const key = d.TipoIncidente;
+        counts[key] = (counts[key] || 0) + 1;
+      });
+      const tipos = Object.keys(counts);
+      tipos.sort((a, b) => counts[b] - counts[a]);
+
+      const x = tipos;
+      const y = tipos.map(t => counts[t]);
+
+      const trace = {
+        x,
+        y,
+        type: "bar",
+        marker: {
+          line: { width: 0.5, color: "rgba(15,23,42,0.8)" }
+        },
+        hovertemplate: "%{x}<br>Incidentes: %{y}<extra></extra>"
+      };
+
+      const layout = {
+        margin: { l: 40, r: 20, t: 10, b: 80 },
+        paper_bgcolor: "rgba(0,0,0,0)",
+        plot_bgcolor: "rgba(15,23,42,0.6)",
+        font: { color: "#e5e7eb" },
+        xaxis: { automargin: true, gridcolor: "rgba(55,65,81,0.6)" },
+        yaxis: { title: "Nº de incidentes", gridcolor: "rgba(55,65,81,0.6)" }
+      };
+
+      Plotly.newPlot("bar-tipo", [trace], layout, {responsive: true});
+    }
+
+    function buildLineCat() {
+      const data = getCauseFiltered();
+      const buckets = {};
+      data.forEach(d => {
+        const month = d.Fecha.slice(0, 7);
+        const cat = d.Categoria;
+        const key = month + "|" + cat;
+        buckets[key] = (buckets[key] || 0) + 1;
+      });
+
+      const cats = ["Accidente físico", "Salud musculoesquelética", "Riesgo psicosocial"];
+      const monthsSet = new Set();
+      Object.keys(buckets).forEach(k => monthsSet.add(k.split("|")[0]));
+      const months = Array.from(monthsSet).sort();
+
+      const traces = [];
+      const catColors = {
+        "Accidente físico": "#f97373",
+        "Salud musculoesquelética": "#4ade80",
+        "Riesgo psicosocial": "#38bdf8"
+      };
+
+      cats.forEach(cat => {
+        const y = months.map(m => buckets[m + "|" + cat] || 0);
+        const hasData = y.some(v => v > 0);
+        if (!hasData) return;
+        traces.push({
+          x: months,
+          y,
+          type: "scatter",
+          mode: "lines+markers",
+          name: cat,
+          line: { color: catColors[cat] || "#9ca3af" },
+          hovertemplate: "%{x}<br>" + cat + ": %{y} casos<extra></extra>"
+        });
+      });
+
+      const layout = {
+        margin: { l: 40, r: 20, t: 10, b: 60 },
+        paper_bgcolor: "rgba(0,0,0,0)",
+        plot_bgcolor: "rgba(15,23,42,0.6)",
+        font: { color: "#e5e7eb" },
+        xaxis: { title: "Mes", automargin: true, gridcolor: "rgba(55,65,81,0.6)" },
+        yaxis: { title: "Nº de incidentes", gridcolor: "rgba(55,65,81,0.6)" },
+        legend: { orientation: "h", y: -0.2 }
+      };
+
+      Plotly.newPlot("line-cat", traces, layout, {responsive: true});
+    }
+
+    function renderCauseTable() {
+      const data = getCauseFiltered();
+      const tbody = document.querySelector("#tabla-textos-causas tbody");
+      tbody.innerHTML = "";
+      const sample = data.slice(0, 10);
+      sample.forEach(d => {
+        const tr = document.createElement("tr");
+
+        const tdFecha = document.createElement("td");
+        tdFecha.textContent = d.Fecha;
+        tr.appendChild(tdFecha);
+
+        const tdCentro = document.createElement("td");
+        tdCentro.textContent = d.CentroTrabajo + " · " + d.Turno + " · " + d.TipoPersonal;
+        tr.appendChild(tdCentro);
+
+        const tdCat = document.createElement("td");
+        const span = document.createElement("span");
+        span.textContent = d.Categoria;
+        let cls = "badge-cat ";
+        if (d.Categoria === "Accidente físico") cls += "cat-fisico";
+        else if (d.Categoria === "Salud musculoesquelética") cls += "cat-musculo";
+        else cls += "cat-psico";
+        span.className = cls;
+        tdCat.appendChild(span);
+        const divTipo = document.createElement("div");
+        divTipo.textContent = d.TipoIncidente;
+        tdCat.appendChild(divTipo);
+        tr.appendChild(tdCat);
+
+        const tdTexto = document.createElement("td");
+        tdTexto.textContent = d.TextoCausa;
+        tr.appendChild(tdTexto);
+
+        tbody.appendChild(tr);
+      });
+    }
+
+    function refreshCauseAll() {
+      updateCauseKpis();
+      buildBarTipo();
+      buildLineCat();
+      renderCauseTable();
+    }
+
+    cCenterSelect.addEventListener("change", refreshCauseAll);
+    cFocusSelect.addEventListener("change", refreshCauseAll);
+    cTypeSelect.addEventListener("change", refreshCauseAll);
+
+    // ==================== VISTA 3 · NLP ====================
+    const nCenterSelect = document.getElementById("ncenter-select");
+    const nCatSelect = document.getElementById("ncat-select");
+    const nTypeSelect = document.getElementById("ntype-select");
+    const cloudContainer = document.getElementById("cloud");
+    const nlpTableBody = document.querySelector("#tabla-textos-nlp tbody");
+
+    const nCentros = [...new Set(causeDataBase.map(d => d.CentroTrabajo))];
+    nCentros.forEach(c => {
+      const opt = document.createElement("option");
+      opt.value = c;
+      opt.textContent = c;
+      nCenterSelect.appendChild(opt);
+    });
+
+    const stopwords = new Set([
+      "el","la","los","las","un","una","unos","unas","de","del","al","a","en","por","para","con","sin","y","o","u",
+      "se","es","que","como","tras","sus","su","más","menos","muy","poca","poco","mucha","mucho","varias","varios",
+      "semanas","días","dia","día","sobre","baja","alta","tras","luego","entre","esta","este","estos","estas",
+      "cual","cuales","cuyo","cuyos","cuyas","lo","le","les","ya","no","sí","si","hay","haber","ser","estar"
+    ]);
+
+    let selectedWord = null;
+
+    function getNlpFiltered() {
+      const center = nCenterSelect.value;
+      const cat    = nCatSelect.value;
+      const tipo   = nTypeSelect.value;
+      return causeDataBase.filter(d => {
+        const okCenter = center === "__all__" || d.CentroTrabajo === center;
+        const okCat    = cat === "ALL" || d.Categoria === cat;
+        const okTipo   = tipo === "__all__" || d.TipoPersonal === tipo;
+        return okCenter && okCat && okTipo;
+      });
+    }
+
+    function tokenize(text) {
+      const pattern = /[A-Za-zÁÉÍÓÚÜÑáéíóúüñ]+/g;
+      const tokens = text.match(pattern) || [];
+      return tokens.map(t => t.toLowerCase());
+    }
+
+    function buildNlpFrequencies() {
+      const data = getNlpFiltered();
+      const freq = {};
+      let totalBaja = 0;
+
+      data.forEach(d => {
+        totalBaja += d.DiasBaja || 0;
+        const tokens = tokenize(d.TextoCausa);
+        tokens.forEach(tok => {
+          if (tok.length < 3) return;
+          if (stopwords.has(tok)) return;
+          freq[tok] = (freq[tok] || 0) + 1;
+        });
+      });
+
+      const entries = Object.entries(freq).sort((a,b) => b[1] - a[1]);
+      const top = entries.slice(0, 15);
+      return { top, freq, totalBaja, totalDocs: data.length };
+    }
+
+    function updateNlpKpis(freqInfo) {
+      const distinctWords = Object.keys(freqInfo.freq).length;
+      const topWord = freqInfo.top.length ? freqInfo.top[0][0] : "-";
+
+      document.getElementById("nkpi-incidentes").textContent = freqInfo.totalDocs;
+      document.getElementById("nkpi-vocab").textContent = distinctWords;
+      document.getElementById("nkpi-topword").textContent = topWord;
+      document.getElementById("nkpi-baja").textContent = freqInfo.totalBaja;
+    }
+
+    function buildNlpBar(freqInfo) {
+      const words = freqInfo.top.map(([w]) => w);
+      const counts = freqInfo.top.map(([,c]) => c);
+
+      const trace = {
+        x: words,
+        y: counts,
+        type: "bar",
+        marker: {
+          line: { width: 0.5, color: "rgba(15,23,42,0.8)" }
+        },
+        hovertemplate: "%{x}<br>Frecuencia: %{y}<extra></extra>"
+      };
+
+      const layout = {
+        margin: { l: 40, r: 20, t: 10, b: 80 },
+        paper_bgcolor: "rgba(0,0,0,0)",
+        plot_bgcolor: "rgba(15,23,42,0.6)",
+        font: { color: "#e5e7eb" },
+        xaxis: { automargin: true, gridcolor: "rgba(55,65,81,0.6)" },
+        yaxis: { title: "Frecuencia en textos", gridcolor: "rgba(55,65,81,0.6)" }
+      };
+
+      Plotly.newPlot("bar-palabras", [trace], layout, {responsive: true})
+        .then(plot => {
+          plot.on("plotly_click", ev => {
+            const point = ev.points && ev.points[0];
+            if (!point) return;
+            const word = point.x;
+            setSelectedWord(word);
+          });
+        });
+    }
+
+    function buildCloud(freqInfo) {
+      cloudContainer.innerHTML = "";
+      if (!freqInfo.top.length) return;
+
+      const counts = freqInfo.top.map(([,c]) => c);
+      const maxC = Math.max(...counts);
+      const minC = Math.min(...counts);
+
+      freqInfo.top.forEach(([word, count]) => {
+        const span = document.createElement("span");
+        span.textContent = word;
+        const ratio = maxC === minC ? 0.5 : (count - minC) / (maxC - minC);
+        const size = 11 + ratio * 14;
+        span.style.fontSize = size.toFixed(1) + "px";
+        span.className = "cloud-word" + (word === selectedWord ? " selected" : "");
+        span.addEventListener("click", () => setSelectedWord(word));
+        cloudContainer.appendChild(span);
+      });
+    }
+
+    function renderNlpTable() {
+      const data = getNlpFiltered();
+      nlpTableBody.innerHTML = "";
+      const sample = data.slice(0, 10);
+      sample.forEach(d => {
+        const tr = document.createElement("tr");
+
+        const tdFecha = document.createElement("td");
+        tdFecha.textContent = d.Fecha;
+        tr.appendChild(tdFecha);
+
+        const tdCentro = document.createElement("td");
+        tdCentro.textContent = d.CentroTrabajo + " · " + d.Turno + " · " + d.TipoPersonal;
+        tr.appendChild(tdCentro);
+
+        const tdCat = document.createElement("td");
+        const span = document.createElement("span");
+        span.textContent = d.Categoria;
+        let cls = "badge-cat ";
+        if (d.Categoria === "Accidente físico") cls += "cat-fisico";
+        else if (d.Categoria === "Salud musculoesquelética") cls += "cat-musculo";
+        else cls += "cat-psico";
+        span.className = cls;
+        tdCat.appendChild(span);
+        const divTipo = document.createElement("div");
+        divTipo.textContent = d.TipoIncidente;
+        tdCat.appendChild(divTipo);
+        tr.appendChild(tdCat);
+
+        const tdTexto = document.createElement("td");
+        tdTexto.textContent = d.TextoCausa;
+        if (selectedWord) {
+          const pattern = new RegExp("(" + selectedWord.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ")", "gi");
+          tdTexto.innerHTML = tdTexto.textContent.replace(pattern, "<mark>$1</mark>");
+        }
+        tr.appendChild(tdTexto);
+
+        nlpTableBody.appendChild(tr);
+      });
+    }
+
+    function setSelectedWord(word) {
+      selectedWord = word;
+      refreshNlpAll();
+    }
+
+    function refreshNlpAll() {
+      const freqInfo = buildNlpFrequencies();
+      updateNlpKpis(freqInfo);
+      buildNlpBar(freqInfo);
+      buildCloud(freqInfo);
+      renderNlpTable();
+    }
+
+    nCenterSelect.addEventListener("change", () => {
+      selectedWord = null;
+      refreshNlpAll();
+    });
+    nCatSelect.addEventListener("change", () => {
+      selectedWord = null;
+      refreshNlpAll();
+    });
+    nTypeSelect.addEventListener("change", () => {
+      selectedWord = null;
+      refreshNlpAll();
+    });
+
+    // ==================== VISTA 5 · ABSENTISMO Y PRODUCTIVIDAD ====================
+        const absDataBase = [
+      {CentroTrabajo:"Centro Madrid",   TipoPersonal:"Interno",  Mes:"2023-01", HorasPerdidas:260, HorasEfectivas:8000, CosteHora:27},
+      {CentroTrabajo:"Centro Madrid",   TipoPersonal:"Interno",  Mes:"2023-02", HorasPerdidas:280, HorasEfectivas:8000, CosteHora:27},
+      {CentroTrabajo:"Centro Madrid",   TipoPersonal:"Interno",  Mes:"2023-03", HorasPerdidas:300, HorasEfectivas:8000, CosteHora:27},
+      {CentroTrabajo:"Centro Madrid",   TipoPersonal:"Contrata", Mes:"2023-01", HorasPerdidas:320, HorasEfectivas:6000, CosteHora:24},
+      {CentroTrabajo:"Centro Madrid",   TipoPersonal:"Contrata", Mes:"2023-02", HorasPerdidas:340, HorasEfectivas:6000, CosteHora:24},
+      {CentroTrabajo:"Centro Madrid",   TipoPersonal:"Contrata", Mes:"2023-03", HorasPerdidas:360, HorasEfectivas:6000, CosteHora:24},
+
+      {CentroTrabajo:"Centro Barcelona",TipoPersonal:"Interno",  Mes:"2023-01", HorasPerdidas:230, HorasEfectivas:7000, CosteHora:26},
+      {CentroTrabajo:"Centro Barcelona",TipoPersonal:"Interno",  Mes:"2023-02", HorasPerdidas:250, HorasEfectivas:7000, CosteHora:26},
+      {CentroTrabajo:"Centro Barcelona",TipoPersonal:"Interno",  Mes:"2023-03", HorasPerdidas:270, HorasEfectivas:7000, CosteHora:26},
+      {CentroTrabajo:"Centro Barcelona",TipoPersonal:"Contrata", Mes:"2023-01", HorasPerdidas:290, HorasEfectivas:5500, CosteHora:23},
+      {CentroTrabajo:"Centro Barcelona",TipoPersonal:"Contrata", Mes:"2023-02", HorasPerdidas:310, HorasEfectivas:5500, CosteHora:23},
+      {CentroTrabajo:"Centro Barcelona",TipoPersonal:"Contrata", Mes:"2023-03", HorasPerdidas:330, HorasEfectivas:5500, CosteHora:23},
+
+      {CentroTrabajo:"Centro Sevilla",  TipoPersonal:"Interno",  Mes:"2023-01", HorasPerdidas:210, HorasEfectivas:6500, CosteHora:25},
+      {CentroTrabajo:"Centro Sevilla",  TipoPersonal:"Interno",  Mes:"2023-02", HorasPerdidas:220, HorasEfectivas:6500, CosteHora:25},
+      {CentroTrabajo:"Centro Sevilla",  TipoPersonal:"Interno",  Mes:"2023-03", HorasPerdidas:235, HorasEfectivas:6500, CosteHora:25},
+      {CentroTrabajo:"Centro Sevilla",  TipoPersonal:"Contrata", Mes:"2023-01", HorasPerdidas:260, HorasEfectivas:5000, CosteHora:22},
+      {CentroTrabajo:"Centro Sevilla",  TipoPersonal:"Contrata", Mes:"2023-02", HorasPerdidas:280, HorasEfectivas:5000, CosteHora:22},
+      {CentroTrabajo:"Centro Sevilla",  TipoPersonal:"Contrata", Mes:"2023-03", HorasPerdidas:295, HorasEfectivas:5000, CosteHora:22}
+    ];
+
+    const absCenterSelect = document.getElementById("abs-center-select");
+    const absTypeSelect   = document.getElementById("abs-type-select");
+    const absSlider       = document.getElementById("abs-slider");
+    const absSliderValue  = document.getElementById("abs-slider-value");
+
+    const absCentros = [...new Set(absDataBase.map(d => d.CentroTrabajo))];
+    absCentros.forEach(c => {
+      const opt = document.createElement("option");
+      opt.value = c;
+      opt.textContent = c;
+      absCenterSelect.appendChild(opt);
+    });
+
+    function getAbsFiltered() {
+      const c = absCenterSelect.value;
+      const t = absTypeSelect.value;
+      return absDataBase.filter(d => {
+        const okC = c === "__all__" || d.CentroTrabajo === c;
+        const okT = t === "__all__" || d.TipoPersonal === t;
+        return okC && okT;
+      });
+    }
+
+    function getAbsGlobalAgg() {
+      const data = getAbsFiltered();
+      let horasPerdidas = 0;
+      let horasEfectivas = 0;
+      let costePonderado = 0;
+      data.forEach(d => {
+        horasPerdidas += d.HorasPerdidas;
+        horasEfectivas += d.HorasEfectivas;
+        costePonderado += d.CosteHora * d.HorasPerdidas;
+      });
+      const costeMedio = horasPerdidas ? (costePonderado / horasPerdidas) : 0;
+      return {horasPerdidas, horasEfectivas, costeMedio};
+    }
+
+    function updateAbsentKpis(reductionPct) {
+      const agg = getAbsGlobalAgg();
+      const {horasPerdidas, horasEfectivas, costeMedio} = agg;
+      const tasa = horasEfectivas ? (horasPerdidas / horasEfectivas) * 100 : 0;
+      const tasaEsc = tasa * (1 - reductionPct / 100);
+      const costeActual = horasPerdidas * costeMedio;
+      const costeEsc = costeActual * (1 - reductionPct / 100);
+      const fte = horasPerdidas / 1700; // horas/año aprox. por FTE
+
+      document.getElementById("bkpi-tasa-actual").textContent = tasa.toFixed(2) + " %";
+      document.getElementById("bkpi-tasa-escenario").textContent = tasaEsc.toFixed(2) + " %";
+      document.getElementById("bkpi-coste-actual").textContent =
+        costeActual.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ".") + " € → " +
+        costeEsc.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ".") + " € (esc.)";
+      document.getElementById("bkpi-fte").textContent = fte.toFixed(1);
+    }
+
+    function buildAbsCenterChart(reductionPct) {
+      const c = absCenterSelect.value;
+      const t = absTypeSelect.value;
+      const map = {};
+      absDataBase.forEach(d => {
+        const okC = c === "__all__" || d.CentroTrabajo === c;
+        const okT = t === "__all__" || d.TipoPersonal === t;
+        if (!okC || !okT) return;
+        const key = d.CentroTrabajo;
+        if (!map[key]) map[key] = {horasPerdidas:0, horasEfectivas:0};
+        map[key].horasPerdidas += d.HorasPerdidas;
+        map[key].horasEfectivas += d.HorasEfectivas;
+      });
+      const centros = Object.keys(map).sort();
+      const tasas = centros.map(k => map[k].horasEfectivas ? (map[k].horasPerdidas / map[k].horasEfectivas) * 100 : 0);
+      const tasasEsc = tasas.map(v => v * (1 - reductionPct / 100));
+
+      const traceActual = {
+        x: centros,
+        y: tasas,
+        type: "bar",
+        name: "Actual",
+        marker: { line: { width: 0.5, color: "rgba(15,23,42,0.9)" } },
+        hovertemplate: "%{x}<br>Tasa absentismo actual: %{y:.2f}%<extra></extra>"
+      };
+      const traceEsc = {
+        x: centros,
+        y: tasasEsc,
+        type: "bar",
+        name: "Escenario",
+        marker: { opacity: 0.6 },
+        hovertemplate: "%{x}<br>Tasa escenario: %{y:.2f}%<extra></extra>"
+      };
+
+      const layout = {
+        barmode: "group",
+        margin: { l: 40, r: 20, t: 10, b: 80 },
+        paper_bgcolor: "rgba(0,0,0,0)",
+        plot_bgcolor: "rgba(15,23,42,0.6)",
+        font: { color: "#e5e7eb" },
+        xaxis: { automargin: true, gridcolor: "rgba(55,65,81,0.6)" },
+        yaxis: { title: "Tasa de absentismo (%)", gridcolor: "rgba(55,65,81,0.6)" },
+        legend: { orientation: "h", y: -0.2 }
+      };
+
+      Plotly.newPlot("abs-center", [traceActual, traceEsc], layout, {responsive: true});
+    }
+
+    function buildAbsMonthChart(reductionPct) {
+      const c = absCenterSelect.value;
+      const t = absTypeSelect.value;
+      const map = {};
+      absDataBase.forEach(d => {
+        const okC = c === "__all__" || d.CentroTrabajo === c;
+        const okT = t === "__all__" || d.TipoPersonal === t;
+        if (!okC || !okT) return;
+        const key = d.Mes;
+        if (!map[key]) map[key] = {horasPerdidas:0, horasEfectivas:0};
+        map[key].horasPerdidas += d.HorasPerdidas;
+        map[key].horasEfectivas += d.HorasEfectivas;
+      });
+      const meses = Object.keys(map).sort();
+      const tasas = meses.map(m => map[m].horasEfectivas ? (map[m].horasPerdidas / map[m].horasEfectivas) * 100 : 0);
+      const tasasEsc = tasas.map(v => v * (1 - reductionPct / 100));
+
+      const traceActual = {
+        x: meses,
+        y: tasas,
+        type: "scatter",
+        mode: "lines+markers",
+        name: "Actual",
+        line: { color: "#f97373" },
+        hovertemplate: "%{x}<br>Tasa actual: %{y:.2f}%<extra></extra>"
+      };
+      const traceEsc = {
+        x: meses,
+        y: tasasEsc,
+        type: "scatter",
+        mode: "lines+markers",
+        name: "Escenario",
+        line: { color: "#22c55e", dash: "dash" },
+        hovertemplate: "%{x}<br>Tasa escenario: %{y:.2f}%<extra></extra>"
+      };
+
+      const layout = {
+        margin: { l: 40, r: 20, t: 10, b: 60 },
+        paper_bgcolor: "rgba(0,0,0,0)",
+        plot_bgcolor: "rgba(15,23,42,0.6)",
+        font: { color: "#e5e7eb" },
+        xaxis: { title: "Mes", automargin: true, gridcolor: "rgba(55,65,81,0.6)" },
+        yaxis: { title: "Tasa de absentismo (%)", gridcolor: "rgba(55,65,81,0.6)" },
+        legend: { orientation: "h", y: -0.2 }
+      };
+
+      Plotly.newPlot("abs-month", [traceActual, traceEsc], layout, {responsive: true});
+    }
+
+    function refreshAbsentAll() {
+      const pct = parseInt(absSlider.value, 10) || 0;
+      absSliderValue.textContent = pct;
+      updateAbsentKpis(pct);
+      buildAbsCenterChart(pct);
+      buildAbsMonthChart(pct);
+    }
+
+    absSlider.addEventListener("input", () => refreshAbsentAll());
+    absCenterSelect.addEventListener("change", () => refreshAbsentAll());
+    absTypeSelect.addEventListener("change", () => refreshAbsentAll());
+
+// ==================== VISTA 4 · ACCIDENTABILIDAD ====================
+    const aCenterSelect = document.getElementById("acenter-select");
+    const aTypeSelect = document.getElementById("atype-select");
+    const aSlider = document.getElementById("aslider");
+    const aSliderValue = document.getElementById("aslider-value");
+
+    const aCentros = [...new Set(causeDataBase.map(d => d.CentroTrabajo))];
+    aCentros.forEach(c => {
+      const opt = document.createElement("option");
+      opt.value = c;
+      opt.textContent = c;
+      aCenterSelect.appendChild(opt);
+    });
+
+    // Agregados mensuales por centro y tipo
+    const accMonthly = {}; // key: center|month|tipo -> {conBaja, sinBaja, dias}
+    causeDataBase.forEach(d => {
+      const month = d.Fecha.slice(0,7);
+      const center = d.CentroTrabajo;
+      const tipo = d.TipoPersonal || "Interno";
+      const key = center + "|" + month + "|" + tipo;
+      if (!accMonthly[key]) accMonthly[key] = { conBaja: 0, sinBaja: 0, dias: 0 };
+      const isConBaja = d.MotivoBaja !== "Sin baja";
+      if (isConBaja) accMonthly[key].conBaja += 1;
+      else accMonthly[key].sinBaja += 1;
+      accMonthly[key].dias += (d.DiasBaja || 0);
+    });
+
+    function getAccAggregates() {
+      const center = aCenterSelect.value;
+      const tipo   = aTypeSelect.value;
+      const monthMap = {};
+      Object.entries(accMonthly).forEach(([key, val]) => {
+        const [c, m, t] = key.split("|");
+        if ((center === "__all__" || c === center) &&
+            (tipo === "__all__" || t === tipo)) {
+          if (!monthMap[m]) monthMap[m] = { conBaja: 0, sinBaja: 0, dias: 0 };
+          monthMap[m].conBaja += val.conBaja;
+          monthMap[m].sinBaja += val.sinBaja;
+          monthMap[m].dias += val.dias;
+        }
+      });
+      const months = Object.keys(monthMap).sort();
+      return months.map(m => ({ month: m, conBaja: monthMap[m].conBaja, sinBaja: monthMap[m].sinBaja, dias: monthMap[m].dias }));
+    }
+
+    function updateAccKpis(reductionPct) {
+      const agg = getAccAggregates();
+      let totalInc = 0;
+      let totalConBaja = 0;
+      let totalDias = 0;
+      agg.forEach(r => {
+        totalInc += r.conBaja + r.sinBaja;
+        totalConBaja += r.conBaja;
+        totalDias += r.dias;
+      });
+
+      const plantilla = 200; // suposición simple para demo
+      const tasaActual = plantilla ? (totalConBaja / plantilla) * 100 : 0;
+      const diasEvitables = totalDias * (reductionPct / 100);
+
+      document.getElementById("akpi-incidentes").textContent = totalInc;
+      document.getElementById("akpi-conbaja").textContent = totalConBaja;
+      document.getElementById("akpi-tasa").textContent = tasaActual.toFixed(1);
+      document.getElementById("akpi-dias-evitables").textContent = diasEvitables.toFixed(0);
+    }
+
+    function buildAccLine(reductionPct) {
+      const agg = getAccAggregates();
+      const plantilla = 200;
+      const months = agg.map(r => r.month);
+      const actual = agg.map(r => plantilla ? (r.conBaja / plantilla) * 100 : 0);
+      const scenarioFactor = 1 - (reductionPct / 100);
+      const scenario = agg.map(r => plantilla ? ((r.conBaja * scenarioFactor) / plantilla) * 100 : 0);
+
+      const traceActual = {
+        x: months,
+        y: actual,
+        type: "scatter",
+        mode: "lines+markers",
+        name: "Actual",
+        line: { color: "#f97373" },
+        hovertemplate: "%{x}<br>Actual: %{y:.2f} acc./100 pers.<extra></extra>"
+      };
+
+      const traceScenario = {
+        x: months,
+        y: scenario,
+        type: "scatter",
+        mode: "lines+markers",
+        name: "Escenario",
+        line: { color: "#22c55e", dash: "dash" },
+        hovertemplate: "%{x}<br>Escenario: %{y:.2f} acc./100 pers.<extra></extra>"
+      };
+
+      const layout = {
+        margin: { l: 40, r: 20, t: 10, b: 60 },
+        paper_bgcolor: "rgba(0,0,0,0)",
+        plot_bgcolor: "rgba(15,23,42,0.6)",
+        font: { color: "#e5e7eb" },
+        xaxis: { title: "Mes", automargin: true, gridcolor: "rgba(55,65,81,0.6)" },
+        yaxis: { title: "Accidentes con baja / 100 personas", gridcolor: "rgba(55,65,81,0.6)" },
+        legend: { orientation: "h", y: -0.2 }
+      };
+
+      Plotly.newPlot("acc-line", [traceActual, traceScenario], layout, {responsive: true});
+    }
+
+    function refreshAccAll() {
+      const pct = parseInt(aSlider.value, 10) || 0;
+      aSliderValue.textContent = pct;
+      updateAccKpis(pct);
+      buildAccLine(pct);
+    }
+
+    aSlider.addEventListener("input", () => refreshAccAll());
+    aCenterSelect.addEventListener("change", () => refreshAccAll());
+    aTypeSelect.addEventListener("change", () => refreshAccAll());
+
+    // ==================== INIT ====================
+    rSliderValue.textContent = rCurrentPct;
+    refreshRiskAll();
+  </script>
+</body>
+</html>
